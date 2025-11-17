@@ -8,16 +8,10 @@ import fs from "fs";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 
-dotenv.config();
+dotenv.config({ path: './.env' });
 const app = express();
 
 // ======= CORS SETUP =======
-// Allow your local frontend and deployed frontend
-const allowedOrigins = [
-    "http://localhost:5000",
-    "http://127.0.0.1:5500",
-    "https://pdf.olivez.in" // <-- replace with your domain
-];
 
 app.use(cors({
     origin: ["https://pdf.olivez.in"]
