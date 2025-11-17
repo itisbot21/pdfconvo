@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Converter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .pdf-box {
+            margin-bottom: 25px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .pdf-box h3 {
+            margin-top: 0;
+        }
+
+        input[type="file"] {
+            display: block;
+            margin: 10px 0;
+        }
+
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>PDF Converter</h2>
+
+        <div class="pdf-box">
+            <h3>Images → PDF</h3>
+            <input type="file" id="img" multiple>
+            <button onclick="imagesToPdf()">Convert</button>
+        </div>
+
+        <div class="pdf-box">
+            <h3>Word → PDF</h3>
+            <input type="file" id="docx">
+            <button onclick="docxToPdf()">Convert</button>
+        </div>
+
+        <div class="pdf-box">
+            <h3>PDF → Text</h3>
+            <input type="file" id="pdfText">
+            <button onclick="pdfToText()">Convert</button>
+        </div>
+
+        <div class="pdf-box">
+            <h3>PDF → Images</h3>
+            <input type="file" id="pdfImg">
+            <button onclick="pdfToImages()">Convert</button>
+        </div>
+    </div>
+
+    <script>
+        // CHANGE THIS TO YOUR DEPLOYED BACKEND URL
+        const BACKEND_URL = "http://localhost:5000";
+
+        async function imagesToPdf() {
+            const files = document.getElementById("img").files;
+            const form = new FormData();
+            [...files].forEach(f => form.append("files", f));
+
+            const res = await fetch(`${BACKEND_URL}/to-pdf/images`, {
+                method: "POST",
+                body: form
+            });
+
+            const pdf = await res.blob();
+            download(pdf, "images.pdf");
+        }
+
+        async function docxToPdf() {
+            const file = document.getElementById("docx").files[0];
+            const form = new FormData();
+            form.append("file", file);
+
+            const res = await fetch(`${BACKEND_URL}/to-pdf/docx`, {
+                method: "POST",
+                body: form
+            });
+
+            const pdf = await res.blob();
+            download(pdf, "converted.pdf");
+        }
+
+        async function pdfToText() {
+            const file = document.getElementById("pdfText").files[0];
+            const form = new FormData();
+            form.append("file", file);
+
+            const res = await fetch(`${BACKEND_URL}/from-pdf/text`, {
+                method: "POST",
+                body: form
+            });
+
+            alert(await res.text());
+        }
+
+        async function pdfToImages() {
+            const file = document.getElementById("pdfImg").files[0];
+            const form = new FormData();
+            form.append("file", file);
+
+            const res = await fetch(`${BACKEND_URL}/from-pdf/images`, {
+                method: "POST",
+                body: form
+            });
+
+            const data = await res.json();
+            console.log(data);
+
+            // Automatically download first image (optional)
+            if (data.length > 0) {
+                const blob = base64ToBlob(data[0].data, "image/png");
+                download(blob, data[0].name + ".png");
+            }
+        }
+
+        function download(blob, name) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = name;
+            a.click();
+        }
+
+        function base64ToBlob(base64, type) {
+            const bytes = atob(base64);
+            let length = bytes.length;
+            const out = new Uint8Array(length);
+            for (let i = 0; i < length; i++) {
+                out[i] = bytes.charCodeAt(i);
+            }
+            return new Blob([out], { type });
+        }
+    </script>
+</body>
+</html>
