@@ -1,3 +1,6 @@
+# Root or Backend/.gitignore
 node_modules/
 .env
-*.log
+temp*.pdf
+temp*.docx
+output*.png
